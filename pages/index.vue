@@ -29,6 +29,7 @@
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th> <!-- Нова колонка -->
         </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
@@ -45,14 +46,16 @@
           <td class="px-6 py-4 whitespace-normal text-sm text-gray-500 max-w-md truncate">{{ product.description }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{ product.price }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              <span :class="product.rating < 4.5 ? 'text-red-500' : 'text-green-500'">
-                {{ product.rating }}
-              </span>
+        <span :class="product.rating < 4.5 ? 'text-red-500' : 'text-green-500'">
+          {{ product.rating }}
+        </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.category }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ product.brand }}</td>
         </tr>
         </tbody>
       </table>
+
     </div>
 
     <!-- Пагінація -->
@@ -77,8 +80,6 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-
 // Завантаження даних з API
 const { data: productsData, pending, error } = await useFetch('https://dummyjson.com/products')
 
@@ -92,46 +93,16 @@ const search = ref('')
 const page = ref(1)
 const pageCount = 5
 
-// Отримання першого зображення з масиву
-const getFirstImage = (product) => {
-  return product.images?.[0] || ''
-}
-
-// Обробка помилок завантаження зображень
-const handleImageError = (event) => {
-  event.target.src = 'https://via.placeholder.com/100?text=No+Image'
-  event.target.onerror = null
-}
-
 onMounted(async () => {
-  // Очікуємо завершення завантаження
-  if (pending.value) {
-    await new Promise(resolve => {
-      const checkStatus = () => {
-        if (!pending.value) {
-          resolve()
-        } else {
-          setTimeout(checkStatus, 100)
-        }
-      }
-      checkStatus()
-    })
+  // Чекаємо поки дані завантажуються
+  while (pending.value) {
+    await new Promise(resolve => setTimeout(resolve, 100))
   }
 
-  if (productsData.value) {
-    if (productsData.value.products && Array.isArray(productsData.value.products)) {
-      rawProducts.value = productsData.value.products
-    } else if (Array.isArray(productsData.value)) {
-      rawProducts.value = productsData.value
-    } else {
-      const potentialArrays = Object.values(productsData.value)
-          .filter(val => Array.isArray(val) && val.length > 0)
-
-      if (potentialArrays.length > 0) {
-        rawProducts.value = potentialArrays.reduce((largest, current) =>
-            current.length > largest.length ? current : largest, [])
-      }
-    }
+  // Якщо дані успішно прийшли
+  if (productsData.value && productsData.value.products) {
+    // Беремо масив продуктів
+    rawProducts.value = productsData.value.products
   }
 })
 
