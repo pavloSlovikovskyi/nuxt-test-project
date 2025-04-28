@@ -1,14 +1,12 @@
 <template>
   <div class="p-6">
     <h1 class="text-2xl font-bold mb-4">Product List</h1>
-
-    <!-- Інформація про статус -->
+    
     <div class="mb-4 p-2 bg-gray-100 rounded">
       <p>Status: {{ pending ? 'Loading...' : error ? 'Error' : 'Loaded!' }}</p>
       <p>Amount of products: {{ rawProducts.length }}</p>
     </div>
 
-    <!-- Пошук -->
     <div class="mb-6">
       <input
           v-model="search"
@@ -18,7 +16,6 @@
       />
     </div>
 
-    <!-- Таблиця -->
     <div v-if="rawProducts.length > 0" class="border rounded overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -58,7 +55,6 @@
 
     </div>
 
-    <!-- Пагінація -->
     <div v-if="paginatedRows.length > 0" class="mt-4 flex justify-between items-center">
       <button
           @click="page = Math.max(page - 1, 1)"
@@ -80,33 +76,24 @@
 </template>
 
 <script setup>
-// Завантаження даних з API
 const { data: productsData, pending, error } = await useFetch('https://dummyjson.com/products')
 
-// Просте зберігання даних
 const rawProducts = ref([])
 
-// Пошук
 const search = ref('')
 
-// Пагінація
 const page = ref(1)
 const pageCount = 5
 
 onMounted(async () => {
-  // Чекаємо поки дані завантажуються
   while (pending.value) {
     await new Promise(resolve => setTimeout(resolve, 100))
   }
-
-  // Якщо дані успішно прийшли
   if (productsData.value && productsData.value.products) {
-    // Беремо масив продуктів
     rawProducts.value = productsData.value.products
   }
 })
 
-// Фільтрація
 const filteredRows = computed(() =>
     rawProducts.value.filter(row =>
         row.title.toLowerCase().includes(search.value.toLowerCase()) ||
@@ -115,7 +102,6 @@ const filteredRows = computed(() =>
     )
 )
 
-// Пагіновані рядки
 const totalPages = computed(() => Math.ceil(filteredRows.value.length / pageCount))
 
 const paginatedRows = computed(() => {
